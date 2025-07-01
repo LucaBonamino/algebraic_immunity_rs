@@ -1,6 +1,6 @@
 [package]
 name = "algebraic_immunity"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["LucaBonamino"]
 description = "A package to compute the algebrac immunity of Boolean functions."
@@ -13,6 +13,6 @@ keywords = ["Boolean-function", "algebraic-immunity"]
 
 
 [dependencies]
-lin_algebra = "0.1.0"
+lin_algebra = ">=0.1, <0.3"
 itertools = "0.10"
 rayon = "1.10"
