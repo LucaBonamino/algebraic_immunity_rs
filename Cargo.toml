@@ -1,0 +1,9 @@
+[package]
+name = "algebraic_immunity"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lin_algebra = "0.1.0"
+itertools = "0.10"
+rayon = "1.10"
