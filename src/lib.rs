@@ -1,5 +1,5 @@
-mod ai;
-mod vandermonde;
+pub mod ai;
+pub mod vandermonde;
 
 
 #[cfg(test)]
