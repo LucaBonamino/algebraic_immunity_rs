@@ -16,15 +16,7 @@ mod tests {
 
     #[test]
     fn algebraic_immunity_2_to_10_function(){
-        let ve = vec![1,
- 0,
- 1,
- 0,
- 0,
- 0,
- 1,
- 1,
- 1,
+        let ve = vec![1,0,1,0,0,0,1,1,1,
  1,
  0,
  1,
