@@ -13,6 +13,9 @@ pub struct AlgebraicImmunity {
 impl AlgebraicImmunity {
 
     pub fn new(truth_table: Vec<u8>) -> Self {
+        
+        let len = truth_table.len();
+        assert!(len.is_power_of_two(), "Truth table length must be a power of two.");
         AlgebraicImmunity { truth_table }
     }
 
