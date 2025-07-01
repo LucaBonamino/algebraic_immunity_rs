@@ -2,6 +2,15 @@
 name = "algebraic_immunity"
 version = "0.1.0"
 edition = "2021"
+authors = ["LucaBonamino"]
+description = "A package to compute the algebrac immunity of Boolean functions."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/LucaBonamino/algebraic_immunity_rs"
+homepage = "https://github.com/LucaBonamino/algebraic_immunity_rs"
+categories = ["mathematics", "cryptography"]
+keywords = ["Boolean-function", "algebraic-immunity"]
+
 
 [dependencies]
 lin_algebra = "0.1.0"

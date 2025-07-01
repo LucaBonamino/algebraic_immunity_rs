@@ -29,6 +29,33 @@ impl DerefMut for VanderMonde {
 
 impl VanderMonde{
 
+
+    /// Constructs a new `VanderMonde` matrix from a given set of binary row vectors.
+    ///
+    /// # Arguments
+    ///
+    /// * `elements` - A vector of vectors, where each inner vector represents a row over GF(2).
+    ///   Each element must be `0` or `1`, representing a Boolean value.
+    ///
+    /// # Returns
+    ///
+    /// A `VanderMonde` instance containing the underlying GF(2) matrix.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use algebraic_immunity::vandermonde::VanderMonde;
+    ///
+    /// let rows = vec![
+    ///     vec![1, 0, 1],
+    ///     vec![0, 1, 0],
+    /// ];
+    /// let vm = VanderMonde::new(rows);
+    /// assert_eq!(vm.elements, vec![
+    ///     vec![1, 0, 1],
+    ///     vec![0, 1, 0],
+    /// ]);
+    /// ```
     pub fn new(elements: Vec<Vec<u8>>) -> Self{
         VanderMonde { matrix: GF2Matrix::new(elements) }
     }
@@ -42,7 +69,18 @@ impl VanderMonde{
         format!("[{}]", rows.join(", "))
     }
 
-
+    /// Add a row to a VanderMonde matrix.
+    /// 
+    /// # Example
+    /// ```ignore
+    /// use algebraic_immunity::vandermonde::VanderMonde;
+    /// 
+    /// let mut mat = VanderMonde::new(vec![vec![1,0,1,0]]);
+    /// let vec_to_add = vec![1,0,0,0];
+    /// mat.append_row(vec_to_add);
+    /// let new_mat = VanderMonde::new(vec![vec![1,0,1,0], vec![1,0,0,0]]);
+    /// assert_eq!(mat.elements, new_mat.elements);
+    /// ```
     fn append_row(&mut self, v: Vec<u8>) {
         self.elements.push(v)
     }
@@ -52,22 +90,6 @@ impl VanderMonde{
             self.elements[i].push(v[i]);
         }
     }
-
-    pub fn rank(&self) -> usize {
-        let mut count = 0;
-        let mut pivot_columns = std::collections::HashSet::new();
-
-        for i in 0..self.nrows() {
-            let p = GF2Matrix::get_pivot(&self.elements[i]);
-            if let Some(col) = p {
-                if pivot_columns.insert(col) {
-                    count += 1;
-                }
-            }
-        }
-        count
-    }
-
 
     pub fn compute_next(
         &self,
@@ -93,7 +115,26 @@ impl VanderMonde{
 
 }
 
-
+/// Computes the monomial x^u where x and u are elements of F_2^n represented as binary strings.
+///
+/// str_ops(x,u) = \sum_{i=0}^n x_i^{u_i}
+/// 
+/// # Arguments
+///
+/// * `s1` - A reference to the element x
+/// * `s2` - A reference to the monomial exponent u
+/// 
+/// # Returns
+/// 
+/// The monomial \sum_{i=0}^n x_i^{u_i}.
+/// 
+/// Example
+/// ```
+/// use algebraic_immunity::vandermonde::str_ops;
+/// 
+/// assert_eq!(str_ops(&"101", &"010"), 0);
+/// assert_eq!(str_ops(&"011", &"010"), 1);
+/// ```
 pub fn str_ops(s1: &str, s2: &str) -> u8 {
     s1.chars()
         .zip(s2.chars())
@@ -125,6 +166,47 @@ fn is_submonomial(sub_monom: &str, monom: &str) -> bool {
     true
 }
 
+/// Verifies whether a Boolean function `g`, represented in Algebraic Normal Form (ANF),
+/// vanishes at all given points in `z`.
+/// 
+/// # Arguments
+///
+/// * `z` - A list of binary strings, each representing a point `x \in F_2^n`.
+/// * `g` - A vector of `0` or `1` coefficients corresponding to the monomials in the ANF.
+/// * `mapping` - A vector of binary strings, each representing the exponent vector `u`
+///   of a monomial in the ANF. Its length must match `g.len()`.
+/// 
+/// # Returns
+/// 
+/// A tuple:
+/// * The first element is `true` if `g(x) = 0` for all `x \in z`, otherwise `false`.
+/// * The second element is `None` if all evaluations are zero;
+///   otherwise, it is `Some((i, x))` where `i` is the index in `z` and `x` is the violating point.
+/// 
+/// # Examples
+///
+/// The function does not vanish in z
+/// ```
+/// use algebraic_immunity::vandermonde::verify;
+/// 
+/// let z = vec!["110".to_string(), "101".to_string()];
+/// let g = vec![1, 0, 1];  // coefficients for monomials
+/// let mapping = vec!["000".to_string(), "100".to_string(), "110".to_string()];
+/// let result = verify(z, g, mapping);
+/// assert_eq!(result.0, false);
+/// assert_eq!(result.1.unwrap(), (1, "101".to_string()));
+/// ```
+/// 
+/// The function vanishes in z
+/// ```
+/// use algebraic_immunity::vandermonde::verify;
+/// 
+/// let z = vec!["110".to_string()];
+/// let g = vec![1, 0, 1];  // coefficients for monomials
+/// let mapping = vec!["000".to_string(), "100".to_string(), "110".to_string()];
+/// let result = verify(z, g, mapping);
+/// assert_eq!(result.0, true);
+/// ```
 pub fn verify(z: Vec<String>, g: Vec<u8>, mapping: Vec<String>) -> (bool, Option<(usize, String)>) {
     for (idx, item) in z.iter().enumerate() {
         let anf: Vec<u8> = (0..g.len())

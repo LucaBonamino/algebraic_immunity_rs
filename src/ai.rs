@@ -13,7 +13,7 @@ pub struct AlgebraicImmunity {
 impl AlgebraicImmunity {
 
     pub fn new(truth_table: Vec<u8>) -> Self {
-        
+
         let len = truth_table.len();
         assert!(len.is_power_of_two(), "Truth table length must be a power of two.");
         AlgebraicImmunity { truth_table }
@@ -37,6 +37,37 @@ impl AlgebraicImmunity {
         (true_idxs, false_idxs)
     }
 
+    /// Computes the algebraic immunity of a Boolean function of 'n' variables.
+    /// 
+    /// # Arguments
+    /// 
+    /// * 'truth_table' - A vecors of '1's and '0's representing the truth table of the Boolean function .
+    /// * 'n' - Number of variables of the Boolean function.
+    /// 
+    /// # Returns
+    /// 
+    /// The algebraic immunity of the Boolean function as an integer.
+    /// 
+    /// # Examples
+    /// 
+    /// Algebraic immunity of constant function (1,1,1,1) -> the function f+1 (with truth table [0,0,0,0]) gets annihilates by g(x) = 1.
+    /// ```
+    /// use algebraic_immunity::ai::AlgebraicImmunity;
+    /// 
+    /// let truth_table = vec![1,1,1,1];
+    /// let n = 2;
+    /// let ai = AlgebraicImmunity::algebraic_immunity(truth_table, n);
+    /// assert_eq!(ai, 0);
+    /// ```
+    /// Functoin with algebraic immunity equal to 1.
+    /// ```
+    /// use algebraic_immunity::ai::AlgebraicImmunity;
+    /// 
+    /// let truth_table = vec![0,1,0,0];
+    /// let n = 2;
+    /// let ai = AlgebraicImmunity::algebraic_immunity(truth_table, n);
+    /// assert_eq!(ai, 1);
+    /// ```
     pub fn algebraic_immunity(truth_table: Vec<u8>, n: usize) -> usize {
         let restricted_ai = Self::new(truth_table);
         let (z, z_c) = restricted_ai.compute_z(n);
