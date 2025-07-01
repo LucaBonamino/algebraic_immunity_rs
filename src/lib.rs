@@ -6,8 +6,6 @@ pub mod vandermonde;
 mod tests {
     use crate::ai::AlgebraicImmunity;
 
-    use super::*;
-
     #[test]
     fn algebraic_immunity_ok() {
         let immunity = AlgebraicImmunity::algebraic_immunity(vec![0,1,0,0], 2);

@@ -2,7 +2,7 @@
 name = "algebraic_immunity"
 version = "0.1.0"
 edition = "2021"
-author = "LucaBonamino"
+authors = ["LucaBonamino"]
 description = "A package to compute the algebrac immunity of Boolean functions."
 license = "MIT"
 readme = "README.md"
