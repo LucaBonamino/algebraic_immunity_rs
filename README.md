@@ -1,5 +1,5 @@
 # algebraic_immunity_rs
-A rust library to compute the algebraic immunity of Boolean functions.
+A Rust library to compute the algebraic immunity of Boolean functions.
 
 ## Installation
 Add the dependency to your `Cargo.toml`:
