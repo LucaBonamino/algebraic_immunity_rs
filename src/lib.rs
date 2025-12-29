@@ -1,5 +1,6 @@
 pub mod ai;
 pub mod vandermonde;
+pub mod boolean_function;
 
 
 #[cfg(test)]
