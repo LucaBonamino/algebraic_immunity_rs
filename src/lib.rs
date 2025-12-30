@@ -1,10 +1,11 @@
 pub mod ai;
 pub mod vandermonde;
+pub mod boolean_function;
 
 
 #[cfg(test)]
 mod tests {
-    use crate::ai::AlgebraicImmunity;
+    use crate::ai::{AlgebraicImmunity, AlgebraicImmunityTrait};
 
     #[test]
     fn algebraic_immunity_ok() {

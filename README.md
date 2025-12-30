@@ -1,5 +1,9 @@
 # algebraic_immunity_rs
-A Rust library to compute the algebraic immunity of Boolean functions.
+A Rust library to compute the algebraic immunity and restructes algebraic immunity of Boolean functions.
+
+<b>Reference:</b></br>
+*"Computing the Restricted Algebraic Immunity, and Application to WPB Functions"*  
+Luca Bonamino and Pierrick Méaux. [IACR ePrint 2025/1779](https://eprint.iacr.org/2025/1779).
 
 ## Installation
 Add the dependency to your `Cargo.toml`:
