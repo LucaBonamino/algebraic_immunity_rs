@@ -9,6 +9,27 @@ pub struct AlgebraicImmunity {
     truth_table: Vec<u8>
 }
 
+pub trait AlgebraicImmunityTrait {
+    fn algebraic_immunity(truth_table: Vec<u8>, n: usize) -> usize;
+    fn find_min_annihilator(z: Vec<String>, e: Vec<String>, n: usize) -> Option<usize>;   
+    fn generate_combinations(n: usize, r: usize) -> Vec<String> {
+        let mut all_combinations = Vec::new();
+
+        for k in 0..=r {
+            for ones_positions in (0..n).combinations(k) {
+                let mut binary_string = vec!['0'; n];
+                for &pos in &ones_positions {
+                    binary_string[pos] = '1';
+                }
+                let combination: String = binary_string.iter().rev().collect();
+                all_combinations.push(combination);
+            }
+        }
+
+        all_combinations
+    } 
+}
+
 
 impl AlgebraicImmunity {
 
@@ -36,6 +57,11 @@ impl AlgebraicImmunity {
 
         (true_idxs, false_idxs)
     }
+ 
+
+}
+
+impl AlgebraicImmunityTrait for AlgebraicImmunity {
 
     /// Computes the algebraic immunity of a Boolean function of 'n' variables.
     /// 
@@ -52,7 +78,7 @@ impl AlgebraicImmunity {
     /// 
     /// Algebraic immunity of constant function (1,1,1,1) -> the function f+1 (with truth table [0,0,0,0]) gets annihilates by g(x) = 1.
     /// ```
-    /// use algebraic_immunity::ai::AlgebraicImmunity;
+    /// use algebraic_immunity::ai::{AlgebraicImmunity, AlgebraicImmunityTrait};
     /// 
     /// let truth_table = vec![1,1,1,1];
     /// let n = 2;
@@ -61,14 +87,14 @@ impl AlgebraicImmunity {
     /// ```
     /// Functoin with algebraic immunity equal to 1.
     /// ```
-    /// use algebraic_immunity::ai::AlgebraicImmunity;
+    /// use algebraic_immunity::ai::{AlgebraicImmunity, AlgebraicImmunityTrait};
     /// 
     /// let truth_table = vec![0,1,0,0];
     /// let n = 2;
     /// let ai = AlgebraicImmunity::algebraic_immunity(truth_table, n);
     /// assert_eq!(ai, 1);
     /// ```
-    pub fn algebraic_immunity(truth_table: Vec<u8>, n: usize) -> usize {
+    fn algebraic_immunity(truth_table: Vec<u8>, n: usize) -> usize {
         let restricted_ai = Self::new(truth_table);
         let (z, z_c) = restricted_ai.compute_z(n);
 
@@ -97,28 +123,7 @@ impl AlgebraicImmunity {
         }
     }
 
-}
-
-impl AlgebraicImmunity {
-
-    fn generate_combinations(n: usize, r: usize) -> Vec<String> {
-        let mut all_combinations = Vec::new();
-
-        for k in 0..=r {
-            for ones_positions in (0..n).combinations(k) {
-                let mut binary_string = vec!['0'; n];
-                for &pos in &ones_positions {
-                    binary_string[pos] = '1';
-                }
-                let combination: String = binary_string.iter().rev().collect();
-                all_combinations.push(combination);
-            }
-        }
-
-        all_combinations
-    }
-
-    pub fn find_min_annihilator(
+    fn find_min_annihilator(
         mut z: Vec<String>,
         e: Vec<String>,
         n: usize

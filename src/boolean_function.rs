@@ -1,3 +1,5 @@
+use crate::ai::{AlgebraicImmunity, AlgebraicImmunityTrait};
+
 pub struct BooleanFunction {
     truth_table: Vec<u8>,
     n: usize
@@ -17,7 +19,7 @@ impl BooleanFunction {
     }
 
     fn algebraic_immunity(&self) -> usize{
-        crate::ai::AlgebraicImmunity::algebraic_immunity(self.truth_table.clone(), self.n)
+        AlgebraicImmunity::algebraic_immunity(self.truth_table.clone(), self.n)
     }
     
 }
