@@ -15,7 +15,7 @@ pub struct RestrictedALgebraicImmunity {
     truth_table: Vec<u8>
 }
 
-pub trait AlgebraicImmunityTrait {
+trait AlgebraicImmunityTrait {
     fn generate_combinations(n: usize, r: usize) -> Vec<String> {
         let mut all_combinations = Vec::new();
 
@@ -77,7 +77,7 @@ impl AlgebraicImmunity {
     /// 
     /// Algebraic immunity of constant function (1,1,1,1) -> the function f+1 (with truth table [0,0,0,0]) gets annihilates by g(x) = 1.
     /// ```
-    /// use algebraic_immunity::ai::{AlgebraicImmunity, AlgebraicImmunityTrait};
+    /// use algebraic_immunity::ai::{AlgebraicImmunity};
     /// 
     /// let truth_table = vec![1,1,1,1];
     /// let n = 2;
@@ -86,7 +86,7 @@ impl AlgebraicImmunity {
     /// ```
     /// Functoin with algebraic immunity equal to 1.
     /// ```
-    /// use algebraic_immunity::ai::{AlgebraicImmunity, AlgebraicImmunityTrait};
+    /// use algebraic_immunity::ai::{AlgebraicImmunity};
     /// 
     /// let truth_table = vec![0,1,0,0];
     /// let n = 2;

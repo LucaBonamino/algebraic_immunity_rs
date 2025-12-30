@@ -1,4 +1,4 @@
-use crate::ai::{AlgebraicImmunity, AlgebraicImmunityTrait, RestrictedALgebraicImmunity};
+use crate::ai::{AlgebraicImmunity, RestrictedALgebraicImmunity};
 
 pub struct BooleanFunction {
     truth_table: Vec<u8>,

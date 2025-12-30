@@ -5,7 +5,7 @@ pub mod boolean_function;
 
 #[cfg(test)]
 mod tests {
-    use crate::ai::{AlgebraicImmunity, AlgebraicImmunityTrait};
+    use crate::ai::{AlgebraicImmunity};
 
     #[test]
     fn algebraic_immunity_ok() {
