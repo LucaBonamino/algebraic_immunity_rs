@@ -96,7 +96,7 @@ impl VanderMonde{
         monom_slice: Vec<String>,
         support_slice: Vec<String>,
         idx: usize,
-        operations: Vec<(usize, usize)>
+        operations: &Vec<(usize, usize)>
     ) -> Self {
         let mut m_copy = self.clone();
         let row: Vec<u8> = (0..=idx)
@@ -136,7 +136,7 @@ impl VanderMonde{
         m_copy
     }
 
-    pub fn construct_and_add_column(&self, support: Vec<String>, monom: String, operations: Vec<(usize, usize)>) -> Self {
+    pub fn construct_and_add_column(&self, support: &Vec<String>, monom: String, operations: &Vec<(usize, usize)>) -> Self {
         let mut m_copy = self.clone();
         let column: Vec<u8> = (0..m_copy.nrows())
             .map(|i| str_ops(&support[i], &monom) as u8)
@@ -226,7 +226,7 @@ fn is_submonomial(sub_monom: &str, monom: &str) -> bool {
 /// let z = vec!["110".to_string(), "101".to_string()];
 /// let g = vec![1, 0, 1];  // coefficients for monomials
 /// let mapping = vec!["000".to_string(), "100".to_string(), "110".to_string()];
-/// let result = verify(z, g, mapping);
+/// let result = verify(&z, &g, &mapping);
 /// assert_eq!(result.0, false);
 /// assert_eq!(result.1.unwrap(), (1, "101".to_string()));
 /// ```
@@ -238,10 +238,10 @@ fn is_submonomial(sub_monom: &str, monom: &str) -> bool {
 /// let z = vec!["110".to_string()];
 /// let g = vec![1, 0, 1];  // coefficients for monomials
 /// let mapping = vec!["000".to_string(), "100".to_string(), "110".to_string()];
-/// let result = verify(z, g, mapping);
+/// let result = verify(&z, &g, &mapping);
 /// assert_eq!(result.0, true);
 /// ```
-pub fn verify(z: Vec<String>, g: Vec<u8>, mapping: Vec<String>) -> (bool, Option<(usize, String)>) {
+pub fn verify(z: &Vec<String>, g: &Vec<u8>, mapping: &Vec<String>) -> (bool, Option<(usize, String)>) {
     for (idx, item) in z.iter().enumerate() {
         let anf: Vec<u8> = (0..g.len())
             .filter(|&i| is_submonomial(&mapping[i], item))

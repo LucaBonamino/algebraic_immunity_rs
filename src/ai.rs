@@ -16,8 +16,6 @@ pub struct RestrictedALgebraicImmunity {
 }
 
 pub trait AlgebraicImmunityTrait {
-    // fn algebraic_immunity(truth_table: Vec<u8>, n: usize) -> usize;
-    //fn find_min_annihilator(z: Vec<String>, e: Vec<String>, n: usize) -> Option<usize>;  
     fn generate_combinations(n: usize, r: usize) -> Vec<String> {
         let mut all_combinations = Vec::new();
 
@@ -154,7 +152,7 @@ impl AlgebraicImmunity {
 
         while i < n_iters {
 
-            vander_monde = vander_monde.compute_next(e[..=i].to_vec(), z[..=i].to_vec(), i, operations.clone());
+            vander_monde = vander_monde.compute_next(e[..=i].to_vec(), z[..=i].to_vec(), i, &operations);
             let (new_matrix, operations_i) = vander_monde.echelon_form();
             vander_monde = VanderMonde::from(new_matrix);
 
@@ -163,7 +161,7 @@ impl AlgebraicImmunity {
                 // The kernel basis only contains maximum one element because of the algorithm design.
                 let k = &kernel[0];
 
-                let (vanish_on_z, vanish_index_opt) = verify(z[i + 1..].to_vec(), k.clone(), e[..=i].to_vec());
+                let (vanish_on_z, vanish_index_opt) = verify(&z[i + 1..].to_vec(), &k, &e[..=i].to_vec());
                 if vanish_on_z {
                     return Some(hamming_weight(&e[i]));
                 } else if let Some(vanish_index) = vanish_index_opt {
@@ -278,7 +276,7 @@ impl RestrictedALgebraicImmunity {
         while i < n_iters {
             let vander_monde_old = vander_monde.clone();
 
-            vander_monde = vander_monde.compute_next(e[..=i].to_vec(), z[..=i].to_vec(), i, operations.clone());
+            vander_monde = vander_monde.compute_next(e[..=i].to_vec(), z[..=i].to_vec(), i, &operations);
             let (new_matrix, operations_i) = vander_monde.echelon_form();
             vander_monde = VanderMonde::from(new_matrix);
 
@@ -286,9 +284,9 @@ impl RestrictedALgebraicImmunity {
                 let kernel = vander_monde.kernel();
                 let k = &kernel[0];
 
-                let (vanish_on_z, vanish_index_opt) = verify(z[i + 1..].to_vec(), k.clone(), e[..=i].to_vec());
+                let (vanish_on_z, vanish_index_opt) = verify(&z[i + 1..].to_vec(), &k, &e[..=i].to_vec());
                 if vanish_on_z {
-                    let (vanish_on_s, _) = verify(z_c.clone(), k.clone(), e[..=i].to_vec());
+                    let (vanish_on_s, _) = verify(&z_c, &k, &e[..=i].to_vec());
                     if !vanish_on_s {
                         return Some(e[i].chars().filter(|c| *c == '1').count());
                     } else {
@@ -329,17 +327,9 @@ impl RestrictedALgebraicImmunity {
                 break;
             }
 
-            vander_monde = vander_monde.construct_and_add_column(
-                z.clone(),
-                e[i].clone(),
-                operations.clone()
-            );
+            vander_monde = vander_monde.construct_and_add_column(&z,e[i].clone(), &operations);
 
-            vander_monde_s = vander_monde_s.construct_and_add_column(
-                s.clone(),
-                e[i].clone(),
-                operations_s.clone()
-            );
+            vander_monde_s = vander_monde_s.construct_and_add_column(&s,e[i].clone(), &operations_s);
 
             let (vander_monde_s_new, ops_s) = vander_monde_s.echelon_form();
             vander_monde_s = VanderMonde::from(vander_monde_s_new);
