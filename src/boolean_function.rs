@@ -22,7 +22,7 @@ impl BooleanFunction {
         AlgebraicImmunity::algebraic_immunity(self.truth_table.clone(), self.n)
     }
 
-    fn retsrcted_algebraic_immunity(&self, subset: Vec<usize>) -> usize{
+    fn restricted_algebraic_immunity(&self, subset: Vec<usize>) -> usize{
         RestrictedALgebraicImmunity::algebraic_immunity(self.truth_table.clone(), subset, self.n)
     }
     
