@@ -113,6 +113,40 @@ impl VanderMonde{
         m_copy
     }
 
+    pub fn compute_vandermonde(support: Vec<String>, monomials: Vec<String> ) -> Self{
+        let result: Vec<Vec<u8>> = support.iter()
+            .map(|zi| {
+                monomials.iter()
+                    .map(|ej| str_ops(&zi, &ej))
+                    .collect()
+            })
+            .collect();
+        Self::new(result)
+    }
+
+    pub fn fill_rows(&self, support_slice: Vec<String>, monom_slice: Vec<String>) -> Self {
+        let mut m_copy = self.clone();
+        for j in 0..support_slice.len(){
+            let row: Vec<u8> = (0..monom_slice.len())
+                .map(|i| str_ops(&support_slice[j], &monom_slice[i]) as u8)
+                .collect();
+            m_copy.append_row(row)
+        }
+
+        m_copy
+    }
+
+    pub fn construct_and_add_column(&self, support: Vec<String>, monom: String, operations: Vec<(usize, usize)>) -> Self {
+        let mut m_copy = self.clone();
+        let column: Vec<u8> = (0..m_copy.nrows())
+            .map(|i| str_ops(&support[i], &monom) as u8)
+            .collect();
+        let n_vect: Vec<u8> = apply_operations(&operations, column);
+        m_copy.append_column(n_vect);
+
+        m_copy
+    }
+
 }
 
 /// Computes the monomial x^u where x and u are elements of F_2^n represented as binary strings.
