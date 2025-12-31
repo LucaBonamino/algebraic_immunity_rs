@@ -11,7 +11,7 @@ pub struct AlgebraicImmunity {
 }
 
 #[derive(Clone)]
-pub struct RestrictedALgebraicImmunity {
+pub struct RestrictedAlgebraicImmunity {
     truth_table: Vec<u8>
 }
 
@@ -62,7 +62,7 @@ impl AlgebraicImmunity {
         (true_idxs, false_idxs)
     }
 
-     /// Computes the algebraic immunity of a Boolean function of 'n' variables.
+    /// Computes the algebraic immunity of a Boolean function of 'n' variables.
     /// 
     /// # Arguments
     /// 
@@ -84,7 +84,7 @@ impl AlgebraicImmunity {
     /// let ai = AlgebraicImmunity::algebraic_immunity(truth_table, n);
     /// assert_eq!(ai, 0);
     /// ```
-    /// Functoin with algebraic immunity equal to 1.
+    /// Function with algebraic immunity equal to 1.
     /// ```
     /// use algebraic_immunity::ai::{AlgebraicImmunity};
     /// 
@@ -200,12 +200,45 @@ impl AlgebraicImmunityTrait for AlgebraicImmunity {
     
 }
 
-impl RestrictedALgebraicImmunity {
+impl RestrictedAlgebraicImmunity {
 
     pub fn new(truth_table: Vec<u8>) -> Self {
         Self { truth_table }
     }
 
+    
+    /// Computes the supports of a Boolean function `f` and its complement `f + 1`,
+    /// restricted to a subset `S ⊆ {0,1}^n`.
+    ///
+    /// The support of a Boolean function is the set of inputs for which the function
+    /// evaluates to `1`. All inputs are represented as binary strings of length `n`.
+    ///
+    /// # Arguments
+    ///
+    /// * `subset`: A vector of indices representing the restriction set `S ⊆ {0,1}^n`.
+    /// * `n`: The number of variables of the Boolean function `f`.
+    ///
+    /// # Returns
+    ///
+    /// A tuple `(supp_f, supp_f_complement, s_bin)` where:
+    ///
+    /// * `supp_f` is the support of `f` restricted to `S`
+    /// * `supp_f_complement` is the support of `f + 1` restricted to `S`
+    /// * `s_bin` is the set `S`, represented as binary strings of length `n`
+    ///
+    /// # Panics
+    ///
+    /// Panics if an index in `subset` is out of bounds for the truth table.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use algebraic_immunity::ai::{RestrictedALgebraicImmunity};
+    /// use std::collections::HashSet;
+    /// let f = RestrictedALgebraicImmunity { truth_table: vec![0, 1, 1, 0] };
+    /// let subset = vec![1, 2];
+    /// let (supp_f, supp_f1, s) = f.compute_z(subset, 2);
+    /// ```
     fn compute_z(&self, subset: Vec<usize>, n: usize) -> (Vec<String>, Vec<String>, Vec<String>) {
         let mut true_idxs = Vec::new();
         let mut false_idxs = Vec::new();
@@ -229,6 +262,38 @@ impl RestrictedALgebraicImmunity {
         (true_idxs, false_idxs, s_bin)
     } 
 
+    /// Computes the restructed algebraic immunity of a Boolean function of 'n' variables on a subset `S`.
+    /// 
+    /// # Arguments
+    /// 
+    /// * 'truth_table' - A vecors of '1's and '0's representing the truth table of the Boolean function .
+    /// * `subset` - Restrinction set on which to compute the restricted algebraic immunity.
+    /// * 'n' - Number of variables of the Boolean function.
+    /// 
+    /// # Returns
+    /// 
+    /// The restricted algebraic immunity on `S` of the Boolean function as an integer; `AI_S(f)`.
+    /// 
+    /// # Examples
+    /// 
+    /// Restructed algebraic immunity of constant function (1,1,1,1) -> the function f+1 (with truth table [0,0,0,0]) on the subset [0,1] gets annihilates by g(x) = 1.
+    /// ```
+    /// use algebraic_immunity::ai::{RestrictedAlgebraicImmunity};
+    /// 
+    /// let truth_table = vec![1,1,1,1];
+    /// let n = 2;
+    /// let ai = RestrictedAlgebraicImmunity::algebraic_immunity(truth_table, vec![0,1,2], n);
+    /// assert_eq!(ai, 0);
+    /// ```
+    /// Function with restricted algebraic immunity on [0,1, 2] equal to 1.
+    /// ```
+    /// use algebraic_immunity::ai::{RestrictedAlgebraicImmunity};
+    /// 
+    /// let truth_table = vec![0,1,0,0];
+    /// let n = 2;
+    /// let restricted_immunity = RestrictedAlgebraicImmunity::algebraic_immunity(truth_table, vec![0,1,2], n);
+    /// assert_eq!(restricted_immunity, 1);
+    /// ```
     pub fn algebraic_immunity(truth_table: Vec<u8>, subset: Vec<usize>, n: usize) -> usize {
         let restricted_ai = Self::new(truth_table);
         let (z, z_c, s_bin) = restricted_ai.compute_z(subset, n);
@@ -247,7 +312,7 @@ impl RestrictedALgebraicImmunity {
         let results: Vec<Option<usize>> = args
             .par_iter()
             .map(|(z, z_c, e, s_bin)| {
-                RestrictedALgebraicImmunity::find_min_annihilator(z.clone(), z_c.clone(), e.clone(), s_bin.clone())
+                RestrictedAlgebraicImmunity::find_min_annihilator(z.clone(), z_c.clone(), e.clone(), s_bin.clone())
             })
             .collect();
 
@@ -350,11 +415,53 @@ impl RestrictedALgebraicImmunity {
   
 }
 
-impl AlgebraicImmunityTrait for RestrictedALgebraicImmunity{}
+impl AlgebraicImmunityTrait for RestrictedAlgebraicImmunity{}
 
 
 fn hamming_weight(word: &str) -> usize{
     word.chars().filter(|c| *c == '1').count()
 }
 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn compute_z_empty_f1() {
+        
+        let f = RestrictedAlgebraicImmunity { truth_table: vec![0, 1, 1, 0] };
+        let subset = vec![1, 2];
+        let (supp_f, supp_f1, s) = f.compute_z(subset, 2);
+        
+        assert_eq!(supp_f, vec!["01", "10"]);
+        assert_eq!(supp_f1, Vec::<String>::new());
+        assert_eq!(s, vec!["01", "10"]);
+    }
+
+    #[test]
+    fn compute_z_empty_f2() {
+        
+        let f = RestrictedAlgebraicImmunity { truth_table: vec![0, 1, 1, 0] };
+        let subset = vec![0, 3];
+        let (supp_f, supp_f1, s) = f.compute_z(subset, 2);
+        
+        assert_eq!(supp_f, Vec::<String>::new());
+        assert_eq!(supp_f1, vec!["00", "11"]);
+        assert_eq!(s, vec!["00", "11"]);
+    }
+
+    #[test]
+    fn compute_z_s_full_set() {
+        
+        let f = RestrictedAlgebraicImmunity { truth_table: vec![0, 1, 1, 0] };
+        let subset = vec![0, 1, 2, 3];
+        let (supp_f, supp_f1, s) = f.compute_z(subset, 2);
+        
+        assert_eq!(supp_f, vec!["01", "10"]);
+        assert_eq!(supp_f1, vec!["00", "11"]);
+        assert_eq!(s, vec!["00", "01", "10", "11"]);
+    }
+    
+}
 
