@@ -31,7 +31,7 @@ assert_eq!(restricted_immunity, 1);
 
 Directly from `AlgebraicImmunity` and `RestrictedAlgebraicImmunity` structs.
 ```Rust
-use algebraic_immunity::ai::AlgebraicImmunity;
+use algebraic_immunity::ai::{AlgebraicImmunity, RestrictedAlgebraicImmunity};
 
 let ve = vec![0,1,0,0];
 let immunity = AlgebraicImmunity::algebraic_immunity(ve, 2);
