@@ -1,18 +1,18 @@
+use crate::vandermonde::{str_ops, verify, VanderMonde};
 use itertools::Itertools;
-use rayon::prelude::*;
-use crate::vandermonde::{VanderMonde, str_ops, verify}; 
 use lin_algebra::matrix::MatrixTrait;
+use rayon::prelude::*;
 use std::cmp::min;
 use std::collections::HashSet;
 
 #[derive(Clone)]
 pub struct AlgebraicImmunity {
-    truth_table: Vec<u8>
+    truth_table: Vec<u8>,
 }
 
 #[derive(Clone)]
 pub struct RestrictedAlgebraicImmunity {
-    truth_table: Vec<u8>
+    truth_table: Vec<u8>,
 }
 
 trait AlgebraicImmunityTrait {
@@ -31,54 +31,52 @@ trait AlgebraicImmunityTrait {
         }
 
         all_combinations
-    } 
+    }
 }
 
-
 impl AlgebraicImmunity {
-
     pub fn new(truth_table: Vec<u8>) -> Self {
-
         let len = truth_table.len();
-        assert!(len.is_power_of_two(), "Truth table length must be a power of two.");
+        assert!(
+            len.is_power_of_two(),
+            "Truth table length must be a power of two."
+        );
         AlgebraicImmunity { truth_table }
     }
 
     fn compute_z(&self, n: usize) -> (Vec<String>, Vec<String>) {
         let mut true_idxs = Vec::new();
         let mut false_idxs = Vec::new();
-     
+
         for i in 0..self.truth_table.len() {
-           
             let bin_str = format!("{:0width$b}", i, width = n);
             if self.truth_table[i] == 1 {
                 true_idxs.push(bin_str.clone());
             } else {
                 false_idxs.push(bin_str.clone());
             }
-            
         }
 
         (true_idxs, false_idxs)
     }
 
     /// Computes the algebraic immunity of a Boolean function of 'n' variables.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * 'truth_table' - A vecors of '1's and '0's representing the truth table of the Boolean function .
     /// * 'n' - Number of variables of the Boolean function.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// The algebraic immunity of the Boolean function as an integer.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// Algebraic immunity of constant function (1,1,1,1) -> the function f+1 (with truth table [0,0,0,0]) gets annihilates by g(x) = 1.
     /// ```
     /// use algebraic_immunity::ai::{AlgebraicImmunity};
-    /// 
+    ///
     /// let truth_table = vec![1,1,1,1];
     /// let n = 2;
     /// let ai = AlgebraicImmunity::algebraic_immunity(truth_table, n);
@@ -87,7 +85,7 @@ impl AlgebraicImmunity {
     /// Function with algebraic immunity equal to 1.
     /// ```
     /// use algebraic_immunity::ai::{AlgebraicImmunity};
-    /// 
+    ///
     /// let truth_table = vec![0,1,0,0];
     /// let n = 2;
     /// let ai = AlgebraicImmunity::algebraic_immunity(truth_table, n);
@@ -101,19 +99,14 @@ impl AlgebraicImmunity {
             return 0;
         }
 
-        let r = (n+1) / 2;
+        let r = (n + 1) / 2;
         let e = Self::generate_combinations(n, r);
 
-        let args = vec![
-            (z.clone(), e.clone(), n),
-            (z_c.clone(), e.clone(), n),
-        ];
+        let args = vec![(z.clone(), e.clone(), n), (z_c.clone(), e.clone(), n)];
 
         let results: Vec<Option<usize>> = args
             .par_iter()
-            .map(|(z, e, n)| {
-                Self::find_min_annihilator(z.clone(), e.clone(), *n)
-            })
+            .map(|(z, e, n)| Self::find_min_annihilator(z.clone(), e.clone(), *n))
             .collect();
 
         match results.into_iter().flatten().min() {
@@ -122,27 +115,19 @@ impl AlgebraicImmunity {
         }
     }
 
-    fn find_min_annihilator(
-        mut z: Vec<String>,
-        e: Vec<String>,
-        n: usize
-    ) -> Option<usize> {
-
-        let max_number_of_monimials = e.len()-1;
-        if max_number_of_monimials == 0{
+    fn find_min_annihilator(mut z: Vec<String>, e: Vec<String>, n: usize) -> Option<usize> {
+        let max_number_of_monimials = e.len() - 1;
+        if max_number_of_monimials == 0 {
             return None;
         }
         let size_support = z.len();
-        if size_support < n+1{
-            // If the cardinality of the support is smaller than D_1^n, the an annihiliator of degree d <= 1 must exist. if d was 0, 
+        if size_support < n + 1 {
+            // If the cardinality of the support is smaller than D_1^n, the an annihiliator of degree d <= 1 must exist. if d was 0,
             // it would hav been detcted ba the caller of this function. Therefore d = 1.
             return Some(1);
         }
 
-        let mut vander_monde = VanderMonde::new(vec![
-            vec![str_ops(&z[0], &e[0])]
-        ]);
-        
+        let mut vander_monde = VanderMonde::new(vec![vec![str_ops(&z[0], &e[0])]]);
 
         let mut idx = 0;
         let mut i = 1;
@@ -151,8 +136,8 @@ impl AlgebraicImmunity {
         let n_iters = min(size_support, max_number_of_monimials);
 
         while i < n_iters {
-
-            vander_monde = vander_monde.compute_next(e[..=i].to_vec(), z[..=i].to_vec(), i, &operations);
+            vander_monde =
+                vander_monde.compute_next(e[..=i].to_vec(), z[..=i].to_vec(), i, &operations);
             let (new_matrix, operations_i) = vander_monde.echelon_form();
             vander_monde = VanderMonde::from(new_matrix);
 
@@ -161,7 +146,8 @@ impl AlgebraicImmunity {
                 // The kernel basis only contains maximum one element because of the algorithm design.
                 let k = &kernel[0];
 
-                let (vanish_on_z, vanish_index_opt) = verify(&z[i + 1..].to_vec(), &k, &e[..=i].to_vec());
+                let (vanish_on_z, vanish_index_opt) =
+                    verify(&z[i + 1..].to_vec(), &k, &e[..=i].to_vec());
                 if vanish_on_z {
                     return Some(hamming_weight(&e[i]));
                 } else if let Some(vanish_index) = vanish_index_opt {
@@ -177,36 +163,31 @@ impl AlgebraicImmunity {
             operations.extend(operations_i);
         }
 
-        if (n_iters == size_support && size_support == max_number_of_monimials) || n_iters == max_number_of_monimials {
+        if (n_iters == size_support && size_support == max_number_of_monimials)
+            || n_iters == max_number_of_monimials
+        {
             // If the maximum number of iterations are reached, the algebraic immunity is ceil(n/2) - the hamming weight of the last monomial.
             if let Some(last) = e.last() {
                 return Some(hamming_weight(&last));
             } else {
                 return None;
             }
-        } else if n_iters == size_support{
+        } else if n_iters == size_support {
             // If all the elements of the support have been considered, at the next itaration, the matrix will not be squared anymore, and hence the rank of V_{n_iters+1} is not full anymore.
-            return Some(hamming_weight(&e[idx+1]));
+            return Some(hamming_weight(&e[idx + 1]));
         }
 
         None
-
     }
- 
-
 }
 
-impl AlgebraicImmunityTrait for AlgebraicImmunity {
-    
-}
+impl AlgebraicImmunityTrait for AlgebraicImmunity {}
 
 impl RestrictedAlgebraicImmunity {
-
     pub fn new(truth_table: Vec<u8>) -> Self {
         Self { truth_table }
     }
 
-    
     /// Computes the supports of a Boolean function `f` and its complement `f + 1`,
     /// restricted to a subset `S ⊆ {0,1}^n`.
     ///
@@ -260,26 +241,26 @@ impl RestrictedAlgebraicImmunity {
         }
 
         (true_idxs, false_idxs, s_bin)
-    } 
+    }
 
     /// Computes the restructed algebraic immunity of a Boolean function of 'n' variables on a subset `S`.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * 'truth_table' - A vecors of '1's and '0's representing the truth table of the Boolean function .
     /// * `subset` - Restrinction set on which to compute the restricted algebraic immunity.
     /// * 'n' - Number of variables of the Boolean function.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// The restricted algebraic immunity on `S` of the Boolean function as an integer; `AI_S(f)`.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// Restructed algebraic immunity of constant function (1,1,1,1) -> the function f+1 (with truth table [0,0,0,0]) on the subset [0,1] gets annihilates by g(x) = 1.
     /// ```
     /// use algebraic_immunity::ai::{RestrictedAlgebraicImmunity};
-    /// 
+    ///
     /// let truth_table = vec![1,1,1,1];
     /// let n = 2;
     /// let ai = RestrictedAlgebraicImmunity::algebraic_immunity(truth_table, vec![0,1,2], n);
@@ -288,7 +269,7 @@ impl RestrictedAlgebraicImmunity {
     /// Function with restricted algebraic immunity on [0,1, 2] equal to 1.
     /// ```
     /// use algebraic_immunity::ai::{RestrictedAlgebraicImmunity};
-    /// 
+    ///
     /// let truth_table = vec![0,1,0,0];
     /// let n = 2;
     /// let restricted_immunity = RestrictedAlgebraicImmunity::algebraic_immunity(truth_table, vec![0,1,2], n);
@@ -312,7 +293,12 @@ impl RestrictedAlgebraicImmunity {
         let results: Vec<Option<usize>> = args
             .par_iter()
             .map(|(z, z_c, e, s_bin)| {
-                RestrictedAlgebraicImmunity::find_min_annihilator(z.clone(), z_c.clone(), e.clone(), s_bin.clone())
+                RestrictedAlgebraicImmunity::find_min_annihilator(
+                    z.clone(),
+                    z_c.clone(),
+                    e.clone(),
+                    s_bin.clone(),
+                )
             })
             .collect();
 
@@ -328,9 +314,7 @@ impl RestrictedAlgebraicImmunity {
         mut e: Vec<String>,
         s: Vec<String>,
     ) -> Option<usize> {
-        let mut vander_monde = VanderMonde::new(vec![
-            vec![str_ops(&z[0], &e[0])]
-        ]);
+        let mut vander_monde = VanderMonde::new(vec![vec![str_ops(&z[0], &e[0])]]);
 
         let mut idx = 0;
         let mut i = 1;
@@ -341,7 +325,8 @@ impl RestrictedAlgebraicImmunity {
         while i < n_iters {
             let vander_monde_old = vander_monde.clone();
 
-            vander_monde = vander_monde.compute_next(e[..=i].to_vec(), z[..=i].to_vec(), i, &operations);
+            vander_monde =
+                vander_monde.compute_next(e[..=i].to_vec(), z[..=i].to_vec(), i, &operations);
             let (new_matrix, operations_i) = vander_monde.echelon_form();
             vander_monde = VanderMonde::from(new_matrix);
 
@@ -349,7 +334,8 @@ impl RestrictedAlgebraicImmunity {
                 let kernel = vander_monde.kernel();
                 let k = &kernel[0];
 
-                let (vanish_on_z, vanish_index_opt) = verify(&z[i + 1..].to_vec(), &k, &e[..=i].to_vec());
+                let (vanish_on_z, vanish_index_opt) =
+                    verify(&z[i + 1..].to_vec(), &k, &e[..=i].to_vec());
                 if vanish_on_z {
                     let (vanish_on_s, _) = verify(&z_c, &k, &e[..=i].to_vec());
                     if !vanish_on_s {
@@ -372,8 +358,8 @@ impl RestrictedAlgebraicImmunity {
             operations.extend(operations_i);
         }
 
-        
-        let mut vander_monde_s = VanderMonde::compute_vandermonde(s[..=idx].to_vec(), e[..=idx].to_vec());
+        let mut vander_monde_s =
+            VanderMonde::compute_vandermonde(s[..=idx].to_vec(), e[..=idx].to_vec());
         vander_monde_s = vander_monde_s.fill_rows(s[idx + 1..].to_vec(), e[..=idx].to_vec());
 
         let (vander_monde_s_reduced, mut operations_s) = vander_monde_s.echelon_form();
@@ -392,9 +378,10 @@ impl RestrictedAlgebraicImmunity {
                 break;
             }
 
-            vander_monde = vander_monde.construct_and_add_column(&z,e[i].clone(), &operations);
+            vander_monde = vander_monde.construct_and_add_column(&z, e[i].clone(), &operations);
 
-            vander_monde_s = vander_monde_s.construct_and_add_column(&s,e[i].clone(), &operations_s);
+            vander_monde_s =
+                vander_monde_s.construct_and_add_column(&s, e[i].clone(), &operations_s);
 
             let (vander_monde_s_new, ops_s) = vander_monde_s.echelon_form();
             vander_monde_s = VanderMonde::from(vander_monde_s_new);
@@ -409,19 +396,15 @@ impl RestrictedAlgebraicImmunity {
             operations_s.extend(ops_s);
         }
 
-
         None
     }
-  
 }
 
-impl AlgebraicImmunityTrait for RestrictedAlgebraicImmunity{}
+impl AlgebraicImmunityTrait for RestrictedAlgebraicImmunity {}
 
-
-fn hamming_weight(word: &str) -> usize{
+fn hamming_weight(word: &str) -> usize {
     word.chars().filter(|c| *c == '1').count()
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -429,11 +412,12 @@ mod tests {
 
     #[test]
     fn compute_z_empty_f1() {
-        
-        let f = RestrictedAlgebraicImmunity { truth_table: vec![0, 1, 1, 0] };
+        let f = RestrictedAlgebraicImmunity {
+            truth_table: vec![0, 1, 1, 0],
+        };
         let subset = vec![1, 2];
         let (supp_f, supp_f1, s) = f.compute_z(subset, 2);
-        
+
         assert_eq!(supp_f, vec!["01", "10"]);
         assert_eq!(supp_f1, Vec::<String>::new());
         assert_eq!(s, vec!["01", "10"]);
@@ -441,11 +425,12 @@ mod tests {
 
     #[test]
     fn compute_z_empty_f2() {
-        
-        let f = RestrictedAlgebraicImmunity { truth_table: vec![0, 1, 1, 0] };
+        let f = RestrictedAlgebraicImmunity {
+            truth_table: vec![0, 1, 1, 0],
+        };
         let subset = vec![0, 3];
         let (supp_f, supp_f1, s) = f.compute_z(subset, 2);
-        
+
         assert_eq!(supp_f, Vec::<String>::new());
         assert_eq!(supp_f1, vec!["00", "11"]);
         assert_eq!(s, vec!["00", "11"]);
@@ -453,15 +438,14 @@ mod tests {
 
     #[test]
     fn compute_z_s_full_set() {
-        
-        let f = RestrictedAlgebraicImmunity { truth_table: vec![0, 1, 1, 0] };
+        let f = RestrictedAlgebraicImmunity {
+            truth_table: vec![0, 1, 1, 0],
+        };
         let subset = vec![0, 1, 2, 3];
         let (supp_f, supp_f1, s) = f.compute_z(subset, 2);
-        
+
         assert_eq!(supp_f, vec!["01", "10"]);
         assert_eq!(supp_f1, vec!["00", "11"]);
         assert_eq!(s, vec!["00", "01", "10", "11"]);
     }
-    
 }
-
