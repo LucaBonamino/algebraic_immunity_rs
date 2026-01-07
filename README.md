@@ -1,5 +1,5 @@
 # algebraic_immunity_rs
-A Rust library to compute the algebraic immunity and restructes algebraic immunity of Boolean functions.
+A Rust library to compute the algebraic immunity and restricted algebraic immunity of Boolean functions.
 
 <b>Reference:</b></br>
 *"Computing the Restricted Algebraic Immunity, and Application to WPB Functions"*  
