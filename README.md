@@ -88,3 +88,13 @@ assert_eq!(restricted_immunity, 1);
 
 ## License
 MIT
+
+## Roadmap
+
+This project is under active development.
+
+Current and planned directions include:
+- Reduce unnecessary copying: remove cloning where possible
+- Add generics for the domain bit size (currently all $F_2^n$ elements use `usize`)
+- Increase unit test coverage
+- Increase integration test coverage
