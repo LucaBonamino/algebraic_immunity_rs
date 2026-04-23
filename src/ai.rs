@@ -17,7 +17,7 @@ pub struct RestrictedAlgebraicImmunity {
 
 trait AlgebraicImmunityTrait {
     fn generate_combinations(n: usize, r: usize) -> Vec<usize> {
-        assert!(n <= 64, "n must be at most 64 for u64");
+        assert!(n <= usize::BITS as usize, "n must fit in usize");
 
         let mut all_combinations = Vec::new();
 
