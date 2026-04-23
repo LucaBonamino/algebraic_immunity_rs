@@ -1,6 +1,6 @@
 [package]
 name = "algebraic_immunity"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 authors = ["LucaBonamino"]
 description = "A package to compute the algebrac immunity and the restricted algebraic immunity of Boolean functions."

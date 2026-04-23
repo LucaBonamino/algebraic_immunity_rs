@@ -92,17 +92,17 @@ impl VanderMonde {
 
     pub fn compute_next(
         &self,
-        monom_slice: Vec<String>,
-        support_slice: Vec<String>,
+        monom_slice: Vec<usize>,
+        support_slice: Vec<usize>,
         idx: usize,
         operations: &Vec<(usize, usize)>,
     ) -> Self {
         let mut m_copy = self.clone();
         let row: Vec<u8> = (0..=idx)
-            .map(|i| str_ops(&support_slice[support_slice.len() - 1], &monom_slice[i]) as u8)
+            .map(|i| monomo_eval(support_slice[support_slice.len() - 1], monom_slice[i]) as u8)
             .collect();
         let column: Vec<u8> = (0..idx)
-            .map(|i| str_ops(&support_slice[i], &monom_slice[monom_slice.len() - 1]) as u8)
+            .map(|i| monomo_eval(support_slice[i], monom_slice[monom_slice.len() - 1]) as u8)
             .collect();
 
         let n_vect: Vec<u8> = apply_operations(&operations, column);
@@ -112,19 +112,19 @@ impl VanderMonde {
         m_copy
     }
 
-    pub fn compute_vandermonde(support: Vec<String>, monomials: Vec<String>) -> Self {
+    pub fn compute_vandermonde(support: Vec<usize>, monomials: Vec<usize>) -> Self {
         let result: Vec<Vec<u8>> = support
             .iter()
-            .map(|zi| monomials.iter().map(|ej| str_ops(&zi, &ej)).collect())
+            .map(|zi| monomials.iter().map(|ej| monomo_eval(*zi, *ej)).collect())
             .collect();
         Self::new(result)
     }
 
-    pub fn fill_rows(&self, support_slice: Vec<String>, monom_slice: Vec<String>) -> Self {
+    pub fn fill_rows(&self, support_slice: Vec<usize>, monom_slice: Vec<usize>) -> Self {
         let mut m_copy = self.clone();
         for j in 0..support_slice.len() {
             let row: Vec<u8> = (0..monom_slice.len())
-                .map(|i| str_ops(&support_slice[j], &monom_slice[i]) as u8)
+                .map(|i| monomo_eval(support_slice[j], monom_slice[i]) as u8)
                 .collect();
             m_copy.append_row(row)
         }
@@ -134,13 +134,13 @@ impl VanderMonde {
 
     pub fn construct_and_add_column(
         &self,
-        support: &Vec<String>,
-        monom: String,
+        support: &Vec<usize>,
+        monom: usize,
         operations: &Vec<(usize, usize)>,
     ) -> Self {
         let mut m_copy = self.clone();
         let column: Vec<u8> = (0..m_copy.nrows())
-            .map(|i| str_ops(&support[i], &monom) as u8)
+            .map(|i| monomo_eval(support[i], monom))
             .collect();
         let n_vect: Vec<u8> = apply_operations(&operations, column);
         m_copy.append_column(n_vect);
@@ -149,9 +149,9 @@ impl VanderMonde {
     }
 }
 
-/// Computes the monomial x^u where x and u are elements of F_2^n represented as binary strings.
+/// Computes the monomial x^u where x and u are elements of F_2^n.
 ///
-/// str_ops(x,u) = \sum_{i=0}^n x_i^{u_i}
+/// monomo_eval(x,u) = \sum_{i=0}^n x_i^{u_i}
 ///
 /// # Arguments
 ///
@@ -164,20 +164,13 @@ impl VanderMonde {
 ///
 /// Example
 /// ```
-/// use algebraic_immunity::vandermonde::str_ops;
+/// use algebraic_immunity::vandermonde::monomo_eval;
 ///
-/// assert_eq!(str_ops(&"101", &"010"), 0);
-/// assert_eq!(str_ops(&"011", &"010"), 1);
+/// assert_eq!(monomo_eval(0b101, 0b010), 0);
+/// assert_eq!(monomo_eval(0b011, 0b010), 1);
 /// ```
-pub fn str_ops(s1: &str, s2: &str) -> u8 {
-    s1.chars()
-        .zip(s2.chars())
-        .map(|(c1, c2)| {
-            let base = c1.to_digit(10).unwrap() as u8;
-            let exp = c2.to_digit(10).unwrap() as u8;
-            base.pow(exp as u32)
-        })
-        .product()
+pub fn monomo_eval(x: usize, u: usize) -> u8 {
+    ((x & u) == u) as u8
 }
 
 fn apply_operations(operations: &Vec<(usize, usize)>, v: Vec<u8>) -> Vec<u8> {
@@ -188,19 +181,8 @@ fn apply_operations(operations: &Vec<(usize, usize)>, v: Vec<u8>) -> Vec<u8> {
     result
 }
 
-fn is_submonomial(sub_monom: &str, monom: &str) -> bool {
-    assert_eq!(
-        sub_monom.len(),
-        monom.len(),
-        "The lengths of sub_monom and monom must be equal"
-    );
-
-    for (char1, char2) in sub_monom.chars().zip(monom.chars()) {
-        if char1 > char2 {
-            return false;
-        }
-    }
-    true
+fn is_submonomial(sub_monom: usize, monom: usize) -> bool {
+    (sub_monom & monom) == sub_monom
 }
 
 /// Verifies whether a Boolean function `g`, represented in Algebraic Normal Form (ANF),
@@ -208,10 +190,10 @@ fn is_submonomial(sub_monom: &str, monom: &str) -> bool {
 ///
 /// # Arguments
 ///
-/// * `z` - A list of binary strings, each representing a point `x \in F_2^n`.
+/// * `z` - A list of integers, each representing a point `x \in F_2^n`.
 /// * `g` - A vector of `0` or `1` coefficients corresponding to the monomials in the ANF.
-/// * `mapping` - A vector of binary strings, each representing the exponent vector `u`
-///   of a monomial in the ANF. Its length must match `g.len()`.
+/// * `mapping` - A vector of integers, each representing the exponent vector `u`
+///   of a monomial in the ANF.
 ///
 /// # Returns
 ///
@@ -226,37 +208,33 @@ fn is_submonomial(sub_monom: &str, monom: &str) -> bool {
 /// ```
 /// use algebraic_immunity::vandermonde::verify;
 ///
-/// let z = vec!["110".to_string(), "101".to_string()];
+/// let z = vec![0b110, 0b101];
 /// let g = vec![1, 0, 1];  // coefficients for monomials
-/// let mapping = vec!["000".to_string(), "100".to_string(), "110".to_string()];
+/// let mapping = vec![0b000, 0b100, 0b110];
 /// let result = verify(&z, &g, &mapping);
 /// assert_eq!(result.0, false);
-/// assert_eq!(result.1.unwrap(), (1, "101".to_string()));
+/// assert_eq!(result.1.unwrap(), (1, 0b101));
 /// ```
 ///
 /// The function vanishes in z
 /// ```
 /// use algebraic_immunity::vandermonde::verify;
 ///
-/// let z = vec!["110".to_string()];
+/// let z = vec![0b110];
 /// let g = vec![1, 0, 1];  // coefficients for monomials
-/// let mapping = vec!["000".to_string(), "100".to_string(), "110".to_string()];
+/// let mapping = vec![0b000, 0b100, 0b110];
 /// let result = verify(&z, &g, &mapping);
 /// assert_eq!(result.0, true);
 /// ```
-pub fn verify(
-    z: &Vec<String>,
-    g: &Vec<u8>,
-    mapping: &Vec<String>,
-) -> (bool, Option<(usize, String)>) {
-    for (idx, item) in z.iter().enumerate() {
+pub fn verify(z: &Vec<usize>, g: &Vec<u8>, mapping: &Vec<usize>) -> (bool, Option<(usize, usize)>) {
+    for (idx, &item) in z.iter().enumerate() {
         let anf: Vec<u8> = (0..g.len())
-            .filter(|&i| is_submonomial(&mapping[i], item))
+            .filter(|&i| is_submonomial(mapping[i], item))
             .map(|i| g[i])
             .collect();
 
         if anf.iter().copied().sum::<u8>() % 2 == 1 {
-            return (false, Some((idx, item.clone())));
+            return (false, Some((idx, item)));
         }
     }
     (true, None)
