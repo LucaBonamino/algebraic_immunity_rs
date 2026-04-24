@@ -10,7 +10,7 @@ Add the dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-algebraic_immunity = "0.3.1"
+algebraic_immunity = "0.3.2"
 ```
 
 ## Usage

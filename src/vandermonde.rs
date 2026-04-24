@@ -1,5 +1,5 @@
 use lin_algebra::gf2_matrix::GF2Matrix;
-use lin_algebra::matrix::MatrixTrait;
+use lin_algebra::matrix::MatrixCommon;
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone)]
